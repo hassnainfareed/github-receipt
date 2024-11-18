@@ -13,39 +13,111 @@ export default function Home() {
     if (!username) return;
     setLoading(true);
     try {
-      const response = await fetch(`https://api.github.com/users/${username}`);
-      const data = await response.json();
-      
-      const reposResponse = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`);
+      // Get user data and repos in parallel for better performance
+      const [userResponse, reposResponse] = await Promise.all([
+        fetch(`https://api.github.com/users/${username}`),
+        fetch(`https://api.github.com/users/${username}/repos?per_page=100`)
+      ]);
+
+      const data = await userResponse.json();
       const reposData = await reposResponse.json();
-      
+
+      // Calculate repository stats
       const totalStars = reposData.reduce((acc: number, repo: any) => acc + repo.stargazers_count, 0);
       const totalForks = reposData.reduce((acc: number, repo: any) => acc + repo.forks_count, 0);
-      
+
+      // Get unique languages and sort by usage
       const languages = reposData
-        .map((repo: any) => repo.language)
-        .filter((lang: string) => lang)
-        .reduce((acc: any, curr: string) => {
-          acc[curr] = (acc[curr] || 0) + 1;
+        .reduce((acc: { [key: string]: number }, repo: any) => {
+          // Skip if no language or null
+          if (!repo.language) return acc;
+
+          // Count occurrences of each language
+          acc[repo.language] = (acc[repo.language] || 0) + 1;
           return acc;
         }, {});
 
-      const allLanguages = Object.keys(languages).join(", ") || "None";
+      // Sort languages by frequency but only display the names
+      const sortedLanguages = Object.entries(languages)
+        .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
+        .map(([language]) => language);
 
-      // Calculate contribution score based on multiple factors
-      const contributionScore = 
-        (data.public_repos * 50) +        // Each repo counts as 50 points
-        (totalStars * 20) +               // Each star counts as 20 points
-        (totalForks * 30) +               // Each fork counts as 30 points
-        (data.followers * 10) +           // Each follower counts as 10 points
-        (Object.keys(languages).length * 100); // Each language known counts as 100 points
+      const allLanguages = sortedLanguages.join(", ") || "None";
 
-      setUserData({ 
-        ...data, 
+      // Debug languages
+      console.log('Languages breakdown:', languages);
+      console.log('Sorted languages:', sortedLanguages);
+
+      // Get recent activity for most active day
+      const eventsResponse = await fetch(
+        `https://api.github.com/users/${username}/events/public`
+      );
+      const eventsData = await eventsResponse.json();
+
+      // Calculate most active day from available events
+      const dayCount = eventsData.reduce((acc: any, event: any) => {
+        const day = format(new Date(event.created_at), 'EEEE');
+        acc[day] = (acc[day] || 0) + 1;
+        return acc;
+      }, {});
+
+      const mostActiveDay = Object.entries(dayCount).length > 0
+        ? Object.entries(dayCount)
+          .sort(([, a]: any, [, b]: any) => b - a)[0][0]
+        : format(new Date(), "EEEE");
+
+      // Calculate recent commits from push events
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const commitCount = eventsData
+        .filter((event: any) =>
+          event.type === 'PushEvent' &&
+          new Date(event.created_at) > thirtyDaysAgo
+        )
+        .reduce((acc: number, event: any) =>
+          acc + (event.payload.commits?.length || 0), 0);
+
+      // Inside generateReceipt function, before calculating contributionScore:
+      console.log('Debug values:', {
+        repos: data.public_repos,
+        stars: totalStars,
+        forks: totalForks,
+        followers: data.followers,
+        languages: Object.keys(languages).length,
+        commits: commitCount
+      });
+
+      // Calculation breakdown with authentic weights
+      const contributionScore = Math.round(
+        // Core activity metrics
+        (data.public_repos * 2) +          // Base points for each repository
+        (totalStars * 3) +                 // Stars are important social proof
+        (totalForks * 2) +                 // Forks show code reuse
+
+        // Social impact
+        (data.followers * 1) +             // Followers show influence
+
+        // Code diversity
+        (Object.keys(languages).length * 5) + // Language diversity
+
+        // Recent activity
+        (commitCount * 2) +                // Recent commits show active coding
+
+        // Bonus multipliers
+        (totalStars > 1000 ? 500 : 0) +   // Bonus for 1000+ stars
+        (data.followers > 100 ? 300 : 0) + // Bonus for 100+ followers
+        (data.public_repos > 50 ? 200 : 0) // Bonus for 50+ repos
+      );
+
+      setUserData({
+        ...data,
         totalStars,
         totalForks,
         allLanguages,
-        contributionScore
+        contributionScore,
+        mostActiveDay: mostActiveDay || "Not enough data",
+        commitCount: commitCount || 0
       });
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -129,11 +201,11 @@ export default function Home() {
               <div className="mb-6">
                 <div className="flex justify-between mb-1">
                   <span className="font-bold">MOST ACTIVE DAY:</span>
-                  <span>{format(new Date(), "EEEE")}</span>
+                  <span>{userData.mostActiveDay}</span>
                 </div>
                 <div className="flex justify-between mb-1">
                   <span>COMMITS (30d):</span>
-                  <span>{Math.floor(Math.random() * 100)}</span>
+                  <span>{userData.commitCount}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-bold">CONTRIBUTION SCORE:</span>
