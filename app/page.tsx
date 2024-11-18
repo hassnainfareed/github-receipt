@@ -150,7 +150,7 @@ export default function Home() {
       console.error("Error generating receipt image:", error);
     }
   };
-
+  //update line
   return (
     <div className="min-h-screen bg-[#fafafa] py-12 px-4">
       <div className="max-w-2xl mx-auto">
