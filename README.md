@@ -1,6 +1,6 @@
 # GitHub Receipt Generator
 
-A modern web application that generates a receipt-style summary of GitHub profiles, providing a unique and fun way to visualize GitHub activity and statistics.
+A modern web application that generates a receipt-style summary of GitHub profiles.
 
 ![GitHub Receipt Generator](public/preview.png)
 
@@ -17,6 +17,10 @@ A modern web application that generates a receipt-style summary of GitHub profil
     -   Download receipt as PNG
     -   Share functionality (coming soon)
 -   **Responsive Design**: Works seamlessly on both desktop and mobile devices
+
+## ➕ Adding Features
+
+-   guestbook with the users github username
 
 ## 🚀 Tech Stack
 
