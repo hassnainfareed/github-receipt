@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Download, Share2 } from "lucide-react";
 import { format } from "date-fns";
+import html2canvas from "html2canvas";
 
 export default function Home() {
   const [username, setUsername] = useState("");
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   const generateReceipt = async () => {
     if (!username) return;
@@ -129,6 +131,26 @@ export default function Home() {
   const generateRandomCoupon = () => Math.random().toString(36).substring(2, 8).toUpperCase();
   const generateRandomAuth = () => Math.floor(Math.random() * 900000) + 100000;
 
+  const downloadReceipt = async () => {
+    if (!receiptRef.current) return;
+
+    try {
+      const canvas = await html2canvas(receiptRef.current, {
+        scale: 2, // Higher resolution
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+
+      // Create download link
+      const link = document.createElement("a");
+      link.download = `github-receipt-${userData.login}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (error) {
+      console.error("Error generating receipt image:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fafafa] py-12 px-4">
       <div className="max-w-2xl mx-auto">
@@ -139,18 +161,18 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex gap-3 mb-12 max-w-md mx-auto">
+        <div className="flex gap-2 mb-12 max-w-md mx-auto">
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter GitHub username"
-            className="flex-1 px-6 py-4 text-lg border border-[#e5e5e5] rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#4477ff] shadow-sm"
+            className="flex-1 px-4 py-2.5 text-base border border-[#e5e5e5] rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#4477ff] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-shadow"
           />
           <button
             onClick={generateReceipt}
             disabled={loading}
-            className="px-8 py-4 bg-[#4477ff] text-white rounded-xl text-lg font-medium hover:bg-[#3366ee] focus:outline-none focus:ring-2 focus:ring-[#4477ff] focus:ring-offset-2 disabled:opacity-50 shadow-sm"
+            className="px-6 py-2.5 bg-[#4477ff] text-white rounded-lg text-base font-medium hover:bg-[#3366ee] focus:outline-none focus:ring-2 focus:ring-[#4477ff] focus:ring-offset-2 disabled:opacity-50 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
           >
             Generate
           </button>
@@ -158,7 +180,10 @@ export default function Home() {
 
         {userData && (
           <div className="max-w-[380px] mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-8 font-mono text-sm relative receipt-edge">
+            <div
+              ref={receiptRef}
+              className="bg-white rounded-lg shadow-lg p-8 font-mono text-sm relative receipt-edge"
+            >
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold mb-1">GITHUB RECEIPT</h2>
                 <p className="text-[#666666] mb-1">{format(new Date(), "EEEE, MMMM dd, yyyy").toUpperCase()}</p>
@@ -239,7 +264,10 @@ export default function Home() {
             </div>
 
             <div className="flex justify-center gap-4 mt-8">
-              <button className="flex items-center gap-2 px-6 py-3 bg-white border border-[#e5e5e5] rounded-xl text-[#666666] hover:bg-[#f5f5f5] shadow-sm">
+              <button
+                onClick={downloadReceipt}
+                className="flex items-center gap-2 px-6 py-3 bg-white border border-[#e5e5e5] rounded-xl text-[#666666] hover:bg-[#f5f5f5] shadow-sm"
+              >
                 <Download className="h-5 w-5" />
                 Download
               </button>
