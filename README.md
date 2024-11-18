@@ -57,13 +57,7 @@ A modern web application that generates a receipt-style summary of GitHub profil
     yarn install
     ```
 
-4. Create a `.env.local` file in the root directory and add your GitHub token:
-
-    ```
-    GITHUB_TOKEN=your_github_token_here
-    ```
-
-5. Start the development server:
+4. Start the development server:
 
     ```bash
     npm run dev
@@ -73,7 +67,7 @@ A modern web application that generates a receipt-style summary of GitHub profil
     yarn dev
     ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🤝 Contributing
 
