@@ -182,7 +182,7 @@ export default function Home() {
           <div className="max-w-[380px] mx-auto">
             <div
               ref={receiptRef}
-              className="bg-white rounded-lg shadow-lg p-8 font-mono text-sm relative receipt-edge"
+              className="bg-white shadow-lg p-8 font-mono text-sm relative receipt-edge"
             >
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold mb-1">GITHUB RECEIPT</h2>
