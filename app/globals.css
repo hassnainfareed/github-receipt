@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#fafafa] text-[#1a1a1a];
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.font-mono {
+  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.receipt-edge {
+  position: relative;
+}
+
+.receipt-edge::before,
+.receipt-edge::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(45deg, transparent 33.333%, #fff 0, #fff 66.667%, transparent 0);
+  background-size: 10px 5px;
+  z-index: 10;
+}
+
+.receipt-edge::before {
+  top: -5px;
+}
+
+.receipt-edge::after {
+  bottom: -5px;
+}
